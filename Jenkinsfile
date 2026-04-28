@@ -1,24 +1,45 @@
 pipeline {
     agent any
 
+    environment {
+        APP_NAME = "my-node-app"
+        CONTAINER_NAME = "my-node-container"
+        PORT = "3000"
+    }
+
     stages {
 
-        stage('Clone Code') {
+        stage('Clone') {
             steps {
-                echo 'Code already cloned by Jenkins'
+                echo 'Code pulled from GitHub'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build') {
             steps {
-                sh 'docker build -t my-node-app .'
+                echo 'Building Docker image...'
+                sh 'docker build -t $APP_NAME .'
+            }
+        }
+
+        stage('Stop Old Container') {
+            steps {
+                echo 'Stopping old container...'
+                sh 'docker rm -f $CONTAINER_NAME || true'
             }
         }
 
         stage('Run Container') {
             steps {
-                sh 'docker rm -f my-node-container || true'
-                sh 'docker run -d -p 3000:3000 --name my-node-container my-node-app'
+                echo 'Starting new container...'
+                sh 'docker run -d -p $PORT:$PORT --name $CONTAINER_NAME $APP_NAME'
+            }
+        }
+
+        stage('Verify') {
+            steps {
+                echo 'Checking running containers...'
+                sh 'docker ps'
             }
         }
     }
