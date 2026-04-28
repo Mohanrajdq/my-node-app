@@ -2,44 +2,33 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME = "my-node-app"
-        CONTAINER_NAME = "my-node-container"
-        PORT = "3000"
+        IMAGE_NAME = "mohanraj2000/my-node-appp"
     }
 
     stages {
 
-        stage('Clone') {
+        stage('Clone Code') {
             steps {
-                echo 'Code pulled from GitHub'
+                git 'https://github.com/Mohanrajdq/my-node-app.git'
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Building Docker image...'
-                sh 'docker build -t $APP_NAME .'
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
-        stage('Stop Old Container') {
+        stage('Push to Docker Hub') {
             steps {
-                echo 'Stopping old container...'
-                sh 'docker rm -f $CONTAINER_NAME || true'
+                sh 'docker push $IMAGE_NAME'
             }
         }
 
-        stage('Run Container') {
+        stage('Deploy to Kubernetes') {
             steps {
-                echo 'Starting new container...'
-                sh 'docker run -d -p $PORT:$PORT --name $CONTAINER_NAME $APP_NAME'
-            }
-        }
-
-        stage('Verify') {
-            steps {
-                echo 'Checking running containers...'
-                sh 'docker ps'
+                sh 'kubectl apply -f deployment.yml'
+                sh 'kubectl apply -f service.yml'
             }
         }
     }
